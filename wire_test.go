@@ -17,6 +17,7 @@ func TestWire(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println(mi)
 
 	treq := &TrackerReq{
 		InfoHash:   mi.InfoHash(),
@@ -43,10 +44,7 @@ func TestWire(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	stop, err := Handshake(tres.ListPeers()[0], mi.InfoHash(), func(c *Conn) {
-		fmt.Println(c)
-		c.Stop <- 'z'
-	})
+	stop, err := Handshake(tres.ListPeers()[0], mi.InfoHash())
 	if err != nil {
 		t.Fatal(err)
 	}

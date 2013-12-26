@@ -6,8 +6,49 @@ package bt
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 )
+
+var BTHeader [19]byte
+
+func init() {
+	copy(BTHeader[:], "BitTorrent protocol")
+}
+
+type Header struct {
+	Pstrlen  byte
+	Pstr     [19]byte
+	Reserved [8]byte
+	InfoHash [20]byte
+	PeerId   [20]byte
+}
+
+func (h *Header) String() string {
+	return fmt.Sprintf("pstrlen: %d, pstr: %s, reserved: %x, infohash: %x, peerid: %s",
+		h.Pstrlen, string(h.Pstr[:]), h.Reserved, h.InfoHash, string(h.PeerId[:]))
+}
+
+func Handshake(peer *Peer, ih [20]byte) (chan byte, error) {
+	conn, err := net.Dial("tcp", peer.Addr())
+	if err != nil {
+		return nil, err
+	}
+	hsReq := Header{
+		Pstrlen:  19,
+		Pstr:     BTHeader,
+		InfoHash: ih,
+		PeerId:   BTPeerId,
+	}
+	err = binary.Write(conn, binary.BigEndian, hsReq)
+	if err != nil {
+		return nil, err
+	}
+
+	btConn := &Conn{peer, ih, conn, make(chan byte)}
+	go btConn.Handler()
+	return btConn.Stop, nil
+}
 
 type Conn struct {
 	Peer     *Peer
@@ -16,31 +57,16 @@ type Conn struct {
 	Stop     chan byte
 }
 
-type handshakeReq struct {
-	pstrlen  byte
-	pstr     [19]byte
-	reserved [8]byte
-	infoHash [20]byte
-	peerId   [20]byte
-}
+func (c *Conn) Handler() {
+	defer func() {
+		c.Wire.Close()
+		c.Stop <- 'z'
+	}()
 
-func Handshake(peer *Peer, ih [20]byte, handler func(*Conn)) (chan byte, error) {
-	conn, err := net.Dial("tcp", peer.Addr())
+	hsReq := &Header{}
+	err := binary.Read(c.Wire, binary.BigEndian, hsReq)
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
 	}
-	hsReq := handshakeReq{
-		pstrlen:  19,
-		infoHash: ih,
-		peerId:   BTPeerId,
-	}
-	copy(hsReq.pstr[:], "BitTorrent protocol")
-	err = binary.Write(conn, binary.BigEndian, hsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	btConn := &Conn{peer, ih, conn, make(chan byte)}
-	go handler(btConn)
-	return btConn.Stop, nil
+	fmt.Println(hsReq)
 }

@@ -115,7 +115,7 @@ func (mi *MetaInfo) ScraperUrl() (urls []string) {
 func (mi *MetaInfo) String() string {
 	s := ""
 	if mi.Info != nil {
-		s += fmt.Sprintf("info: %X(sha1)\n", mi.infoHash)
+		s += fmt.Sprintf("info: %x(sha1)\n", mi.infoHash)
 		s += fmt.Sprintf("\tpiece length: %d\n", mi.Info.PieceLength)
 		s += fmt.Sprintf("\tpieces: suppressed\n")
 		s += fmt.Sprintf("\tprivate: %d\n", mi.Info.Private)
