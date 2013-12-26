@@ -48,5 +48,5 @@ func TestWire(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("Handler: %c\n", <-stop)
+	fmt.Printf("Handler: %s\n", <-stop)
 }
