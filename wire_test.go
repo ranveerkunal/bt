@@ -21,7 +21,7 @@ func TestWire(t *testing.T) {
 
 	treq := &TrackerReq{
 		InfoHash:   mi.InfoHash(),
-		PeerId:     BTPeerId,
+		PeerId:     BTPeerId(),
 		Port:       6885,
 		Uploaded:   0,
 		Downloaded: 0,

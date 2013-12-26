@@ -35,18 +35,28 @@ func Handshake(peer *Peer, ih [20]byte) (chan string, error) {
 	if err != nil {
 		return nil, err
 	}
-	hdr := Header{
+	lhdr := Header{
 		Pstrlen:  19,
 		Pstr:     BTHeader,
 		InfoHash: ih,
-		PeerId:   BTPeerId,
+		PeerId:   BTPeerId(),
 	}
-	err = binary.Write(conn, binary.BigEndian, hdr)
+	err = binary.Write(conn, binary.BigEndian, lhdr)
 	if err != nil {
 		return nil, err
 	}
 
 	btConn := &btConn{peer, ih, conn, make(chan *Message), make(chan string)}
+	phdr := &Header{}
+	err = binary.Read(conn, binary.BigEndian, phdr)
+	if err != nil {
+		return nil, err
+	}
+
+	if lhdr.InfoHash != phdr.InfoHash {
+		return nil, fmt.Errorf("Handshake failed lih: %x pih: %x", lhdr.InfoHash, phdr.InfoHash)
+	}
+
 	go btConn.handler()
 	return btConn.Ret, nil
 }
@@ -101,13 +111,6 @@ func (c *btConn) handler() {
 	defer func() {
 		c.Wire.Close()
 	}()
-
-	hdr := &Header{}
-	err := binary.Read(c.Wire, binary.BigEndian, hdr)
-	if err != nil {
-		c.Ret <- err.Error()
-		return
-	}
 
 	go readMessages(c.Wire, c.Msg)
 	for {

@@ -17,11 +17,10 @@ import (
 	"github.com/ranveerkunal/bencode"
 )
 
-var BTPeerId [20]byte
-
-func init() {
+func BTPeerId() (p [20]byte) {
 	ts := strconv.FormatInt(time.Now().UnixNano(), 10)
-	copy(BTPeerId[:], fmt.Sprintf("-DD0001-%s", ts))
+	copy(p[:], fmt.Sprintf("-DD0001-%s", ts))
+	return
 }
 
 type TrackerReq struct {
