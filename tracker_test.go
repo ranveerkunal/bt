@@ -50,5 +50,4 @@ func TestTracker(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(files)
-
 }

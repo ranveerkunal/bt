@@ -57,6 +57,10 @@ type Peer struct {
 	Port   uint16 `ben:"port"`
 }
 
+func (peer *Peer) Addr() string {
+	return fmt.Sprintf("%s:%d", peer.IP, peer.Port)
+}
+
 type TrackerRes struct {
 	FailureReason  string              `ben:"failure reason"`
 	WarningMessage string              `ben:"warning message"`
